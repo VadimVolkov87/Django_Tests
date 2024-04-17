@@ -50,10 +50,10 @@ def news():
 def comment(author, news):
     """Фикстура создания объекта комментария."""
     comment = Comment.objects.create(
-            news=news,
-            author=author,
-            text='Текст комментария'
-        )
+        news=news,
+        author=author,
+        text='Текст комментария'
+    )
     return comment
 
 
