@@ -28,7 +28,7 @@ def test_anonymous_user_cant_create_comment(client, form_data, id_for_args):
 
 def test_user_can_create_comment(
     not_author_client, not_author, news, form_data
-     ):
+    ):
     """
     Функция тестов.
 
@@ -85,7 +85,7 @@ def test_author_can_delete_comment(author_client, news, comment):
 
 def test_user_cant_delete_comment_of_another_user(
     not_author_client, comment
-     ):
+    ):
     """
     Функция тестов.
 
@@ -102,7 +102,7 @@ def test_user_cant_delete_comment_of_another_user(
 def test_author_can_edit_comment(
     author_client,
     id_for_args, comment
-     ):
+    ):
     """
     Функция тестов.
 
