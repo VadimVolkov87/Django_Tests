@@ -1,62 +1,54 @@
 """Модуль тестов маршрутизации."""
-import pytest
 from http import HTTPStatus
 
-from pytest_django.asserts import assertRedirects
+from django.test.client import Client
 from django.urls import reverse
 
+import pytest
+from pytest_django.asserts import assertRedirects
 
-@pytest.mark.django_db
+pytestmark = pytest.mark.django_db
+
+
 @pytest.mark.parametrize(
-    'name, args',
+    'url, parametrized_client, expected_status',
     (
-        ('news:detail', pytest.lazy_fixture('id_for_args')),
-        ('news:home', None),
-        ('users:login', None),
-        ('users:logout', None),
-        ('users:signup', None),
-    ),
+        (pytest.lazy_fixture('detail_url'), Client(), HTTPStatus.OK),
+        (reverse('news:home'), Client(), HTTPStatus.OK),
+        (reverse('users:login'), Client(), HTTPStatus.OK),
+        (reverse('users:logout'), Client(), HTTPStatus.OK),
+        (reverse('users:signup'), Client(), HTTPStatus.OK),
+        (pytest.lazy_fixture('comment_edit_url'),
+         pytest.lazy_fixture('not_author_client'), HTTPStatus.NOT_FOUND),
+        (pytest.lazy_fixture('comment_delete_url'),
+         pytest.lazy_fixture('not_author_client'), HTTPStatus.NOT_FOUND),
+        (pytest.lazy_fixture('comment_edit_url'),
+         pytest.lazy_fixture('author_client'), HTTPStatus.OK),
+        (pytest.lazy_fixture('comment_delete_url'),
+         pytest.lazy_fixture('author_client'), HTTPStatus.OK),
+    )
 )
-def test_pages_availability_for_anonymous_user(client, name, args):
+def test_pages_availability_for_various_users(url,
+                                              parametrized_client,
+                                              expected_status):
     """
     Функция тестов.
 
     Проверка доступности главной страницы, страницы новости
     и страниц регистрации для незарегистрированного пользователя.
-    """
-    url = reverse(name, args=args)
-    response = client.get(url)
-    assert response.status_code == HTTPStatus.OK
-
-
-@pytest.mark.parametrize(
-    'parametrized_client, expected_status',
-    ((pytest.lazy_fixture('not_author_client'), HTTPStatus.NOT_FOUND),
-        (pytest.lazy_fixture('author_client'), HTTPStatus.OK)),
-)
-@pytest.mark.parametrize(
-    'name',
-    ('news:edit', 'news:delete'),
-)
-def test_availability_for_comment_edit_and_delete(
-    parametrized_client, name, comment, expected_status
-):
-    """
-    Функция тестов.
-
-    Проверка доступности редактирования и удаления комментария
+    А также проверка доступности редактирования и удаления комментария
     для автора и зарегистрированного пользователя.
     """
-    url = reverse(name, args=(comment.id,))
     response = parametrized_client.get(url)
     assert response.status_code == expected_status
 
 
 @pytest.mark.parametrize(
-    'name',
-    ('news:edit', 'news:delete'),
+    'fixture_url',
+    (pytest.lazy_fixture('comment_edit_url'),
+     pytest.lazy_fixture('comment_delete_url')),
 )
-def test_redirect_for_anonymous_client(client, name, comment):
+def test_redirect_for_anonymous_client(client, fixture_url):
     """
     Функция тестов.
 
@@ -64,7 +56,6 @@ def test_redirect_for_anonymous_client(client, name, comment):
     при попытке отредактировать или удалить чужой комментарий.
     """
     login_url = reverse('users:login')
-    url = reverse(name, args=(comment.id,))
-    expected_url = f'{login_url}?next={url}'
-    response = client.get(url)
+    expected_url = f'{login_url}?next={fixture_url}'
+    response = client.get(fixture_url)
     assertRedirects(response, expected_url)

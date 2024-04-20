@@ -1,9 +1,10 @@
 """Модуль фикстур для тестов приложения."""
-import pytest
 from datetime import datetime, timedelta
+
 from django.conf import settings
 from django.test.client import Client
-from django.utils import timezone
+from django.urls import reverse
+import pytest
 
 from news.models import News, Comment
 
@@ -50,15 +51,15 @@ def news():
 def comment(author, news):
     """Фикстура создания объекта комментария."""
     comment = Comment.objects.create(
-        news=news,
-        author=author,
-        text='Текст комментария'
-    )
+            news=news,
+            author=author,
+            text='Текст комментария'
+        )
     return comment
 
 
 @pytest.fixture
-def id_for_args(news):
+def id_for_args(news):  # убрать фикстуру
     """Фикстура создающая id новости."""
     return (news.id,)
 
@@ -72,21 +73,16 @@ def bunch_of_news():
              date=today - timedelta(days=index))
         for index in range(settings.NEWS_COUNT_ON_HOME_PAGE + 1)
     ]
-    bunch_of_news = News.objects.bulk_create(all_news)
-    return bunch_of_news
+    News.objects.bulk_create(all_news)
 
 
 @pytest.fixture
 def bunch_of_comments(author, news):
     """Фикстура создающая несколько объектов комментариев."""
-    now = timezone.now()
     for index in range(10):
-        comment = Comment.objects.create(
+        Comment.objects.create(
             news=news, author=author, text=f'Tекст {index}',
         )
-        comment.created = now + timedelta(days=index)
-        comment.save()
-    return comment
 
 
 @pytest.fixture
@@ -95,3 +91,27 @@ def form_data():
     return {
         'text': 'Текст комментария'
     }
+
+
+@pytest.fixture
+def home_url():
+    """Фикстура создания маршрута главной страницы."""
+    return reverse('news:home')
+
+
+@pytest.fixture
+def detail_url(news):
+    """Фикстура создания маршрута страницы отдельной новости."""
+    return reverse('news:detail', args=(news.id,))
+
+
+@pytest.fixture
+def comment_edit_url(comment):
+    """Фикстура создания маршрута редактирования комментария."""
+    return reverse('news:edit', args=(comment.id,))
+
+
+@pytest.fixture
+def comment_delete_url(comment):
+    """Фикстура создания маршрута удаления комментария."""
+    return reverse('news:delete', args=(comment.id,))
