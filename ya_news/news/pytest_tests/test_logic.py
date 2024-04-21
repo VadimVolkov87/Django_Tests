@@ -82,9 +82,8 @@ def test_author_can_delete_comment(author_client, url_to_comments,
     assert after_response_comments_count == before_response_comments_count - 1
 
 
-def test_user_cant_delete_comment_of_another_user(
-        not_author_client, comment_delete_url
-        ):
+def test_user_cant_delete_comment_of_another_user(not_author_client,
+                                                  comment_delete_url):
     """
     Функция тестов.
 
@@ -98,10 +97,8 @@ def test_user_cant_delete_comment_of_another_user(
     assert after_response_comments_count == before_response_comments_count
 
 
-def test_author_can_edit_comment(
-        author_client, comment_edit_url,
-        url_to_comments, author, news
-        ):
+def test_author_can_edit_comment(author_client, comment_edit_url,
+                                 url_to_comments, author, news):
     """
     Функция тестов.
 

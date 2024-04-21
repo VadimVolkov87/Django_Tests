@@ -29,7 +29,7 @@ class TestNotesListPage(TestCase):
                 author=cls.author, title=f'Заголовок {index}',
                 text=f'Tекст {index}', slug=f'probe{index}')
             for index in range(cls.NOTES_COUNT)
-            ]
+        ]
         Note.objects.bulk_create(all_notes)
 
     def test_notes_order(self):
