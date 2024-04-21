@@ -26,7 +26,7 @@ def test_anonymous_user_cant_create_comment(client, form_data, detail_url):
 
 
 def test_user_can_create_comment(not_author_client, not_author,
-                                 news, form_data, detail_url):
+                                 news, form_data, detail_url, url_to_comments):
     """
     Функция тестов.
 
@@ -35,7 +35,7 @@ def test_user_can_create_comment(not_author_client, not_author,
     """
     before_response_comments_count = Comment.objects.count()
     response = not_author_client.post(detail_url, data=form_data)
-    assertRedirects(response, f'{detail_url}#comments')
+    assertRedirects(response, url_to_comments)
     after_response_comments_count = Comment.objects.count()
     assert after_response_comments_count == before_response_comments_count + 1
     comment = Comment.objects.get()
@@ -67,15 +67,14 @@ def test_user_cant_use_bad_words(not_author_client, detail_url):
     assert after_response_comments_count == before_response_comments_count
 
 
-def test_author_can_delete_comment(author_client,
-                                   detail_url, comment_delete_url):
+def test_author_can_delete_comment(author_client, url_to_comments,
+                                   comment_delete_url):
     """
     Функция тестов.
 
     Проверка, что автор комментария
     может удалить свой комментарий.
     """
-    url_to_comments = detail_url + '#comments'
     before_response_comments_count = Comment.objects.count()
     response = author_client.delete(comment_delete_url)
     assertRedirects(response, url_to_comments)
@@ -83,8 +82,9 @@ def test_author_can_delete_comment(author_client,
     assert after_response_comments_count == before_response_comments_count - 1
 
 
-def test_user_cant_delete_comment_of_another_user(not_author_client,
-                                                  comment_delete_url):
+def test_user_cant_delete_comment_of_another_user(
+        not_author_client, comment_delete_url
+        ):
     """
     Функция тестов.
 
@@ -98,8 +98,10 @@ def test_user_cant_delete_comment_of_another_user(not_author_client,
     assert after_response_comments_count == before_response_comments_count
 
 
-def test_author_can_edit_comment(author_client,
-                                 comment_edit_url, detail_url):
+def test_author_can_edit_comment(
+        author_client, comment_edit_url,
+        url_to_comments, author, news
+        ):
     """
     Функция тестов.
 
@@ -113,11 +115,11 @@ def test_author_can_edit_comment(author_client,
     )
     after_response_comments_count = Comment.objects.count()
     assert after_response_comments_count == before_response_comments_count
-    url_to_comments = detail_url + '#comments'
     assertRedirects(response, url_to_comments)
-    new_response = author_client.get(comment_edit_url)
-    new_comment = new_response.context['comment']
+    new_comment = Comment.objects.get()
     assert new_comment.text == NEW_COMMENT_TEXT['text']
+    assert new_comment.author == author
+    assert new_comment.news == news
 
 
 def test_user_cant_edit_comment_of_another_user(not_author_client, detail_url,
@@ -129,7 +131,6 @@ def test_user_cant_edit_comment_of_another_user(not_author_client, detail_url,
     может отредактировать комментарий другого пользователя.
     """
     before_response_comments_count = Comment.objects.count()
-    previous_comment_text = comment.text
     response = not_author_client.post(
         comment_edit_url,
         data=NEW_COMMENT_TEXT
@@ -137,7 +138,7 @@ def test_user_cant_edit_comment_of_another_user(not_author_client, detail_url,
     after_response_comments_count = Comment.objects.count()
     assert after_response_comments_count == before_response_comments_count
     assert response.status_code == HTTPStatus.NOT_FOUND
-    new_response = not_author_client.get(detail_url)
-    news = new_response.context['news']
-    new_comment = news.comment_set.get()
-    assert new_comment.text == previous_comment_text
+    new_comment = Comment.objects.get()
+    assert new_comment.text == comment.text
+    assert new_comment.author == comment.author
+    assert new_comment.news == comment.news

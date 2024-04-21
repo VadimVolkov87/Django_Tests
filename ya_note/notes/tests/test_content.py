@@ -9,7 +9,7 @@ from notes.forms import NoteForm
 User = get_user_model()
 LIST_URL = reverse('notes:list')
 NOTE_ADD_URL = reverse('notes:add')
-SLUG = 'zagolovok'
+SLUG = 'title'
 NOTE_EDIT_URL = reverse('notes:edit', args=(SLUG,))
 
 
@@ -29,7 +29,7 @@ class TestNotesListPage(TestCase):
                 author=cls.author, title=f'Заголовок {index}',
                 text=f'Tекст {index}', slug=f'probe{index}')
             for index in range(cls.NOTES_COUNT)
-        ]
+            ]
         Note.objects.bulk_create(all_notes)
 
     def test_notes_order(self):
@@ -75,6 +75,8 @@ class TestListAddEditNotePages(TestCase):
         list_note = response.context['object_list'].get()
         self.assertEqual(list_note.title, self.note.title)
         self.assertEqual(list_note.text, self.note.text)
+        self.assertEqual(list_note.slug, self.note.slug)
+        self.assertEqual(list_note.author, self.note.author)
 
     def test_notes_list_for_logged_user(self):
         """

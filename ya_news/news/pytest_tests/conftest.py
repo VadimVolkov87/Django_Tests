@@ -51,17 +51,11 @@ def news():
 def comment(author, news):
     """Фикстура создания объекта комментария."""
     comment = Comment.objects.create(
-        news=news,
-        author=author,
-        text='Текст комментария'
-    )
+            news=news,
+            author=author,
+            text='Текст комментария'
+        )
     return comment
-
-
-@pytest.fixture
-def id_for_args(news):  # убрать фикстуру
-    """Фикстура создающая id новости."""
-    return (news.id,)
 
 
 @pytest.fixture
@@ -115,3 +109,27 @@ def comment_edit_url(comment):
 def comment_delete_url(comment):
     """Фикстура создания маршрута удаления комментария."""
     return reverse('news:delete', args=(comment.id,))
+
+
+@pytest.fixture
+def url_to_comments(detail_url):
+    """Фикстура создания маршрута пересылки после действий с комментарием."""
+    return f'{detail_url}#comments'
+
+
+@pytest.fixture
+def login_url():
+    """Фикстура маршрута логина."""
+    return reverse('users:login')
+
+
+@pytest.fixture
+def logout_url():
+    """Фикстура маршрута логаута."""
+    return reverse('users:logout')
+
+
+@pytest.fixture
+def signup_url():
+    """Фикстура маршрута регистрации."""
+    return reverse('users:signup')
