@@ -1,4 +1,4 @@
-# Django testing
+# Django_Tests
 Тесты для сервисов публикаций и заметок на Django с использованием pytest и unittest.
 
 ## Для запуска тестов необходимо:
